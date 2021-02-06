@@ -17,9 +17,19 @@ class CartService
         $this->productRepository = $productRepository;
     }
 
+    public function getCart(): array
+    {
+        return $this->session->get('cart', []);
+    }
+
+    public function saveCart(array $cart)
+    {
+        return $this->session->set('cart', $cart);
+    }
+
     public function add(int $id)
     {
-        $cart = $this->session->get('cart', []);
+        $cart = $this->getCart();
 
         if (array_key_exists($id, $cart)) {
             $cart[$id]++;
@@ -27,21 +37,21 @@ class CartService
             $cart[$id] = 1;
         }
 
-        $this->session->set('cart', $cart);
+        $this->saveCart($cart);
     }
 
     public function remove(int $id)
     {
-        $cart = $this->session->get('cart', []);
+        $cart = $this->getCart();
 
         unset($cart[$id]);
 
-        $this->session->set('cart', $cart);
+        $this->saveCart($cart);
     }
 
     public function decrement(int $id)
     {
-        $cart = $this->session->get('cart', []);
+        $cart = $this->getCart();
 
         if (!array_key_exists($id, $cart)) {
             return;
@@ -54,14 +64,14 @@ class CartService
 
         $cart[$id]--;
 
-        $this->session->set('cart', $cart);
+        $this->saveCart($cart);
     }
 
     public function getTotal(): int
     {
         $total = 0;
 
-        foreach ($this->session->get('cart') as $id => $qty) {
+        foreach ($this->getCart() as $id => $qty) {
             $product = $this->productRepository->find($id);
 
             if (!$product) { // Si jamais l'identifiant du produit n'existe pas pour qqe raison il renverra null donc on évite ça avec le 'continue'
@@ -78,7 +88,7 @@ class CartService
     {
         $detailedCart = [];
 
-        foreach ($this->session->get('cart') as $id => $qty) {
+        foreach ($this->getCart() as $id => $qty) {
             $product = $this->productRepository->find($id);
 
             if (!$product) {
